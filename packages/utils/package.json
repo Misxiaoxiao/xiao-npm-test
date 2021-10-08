@@ -1,5 +1,5 @@
 {
-  "name": "@cli-dev/utils",
+  "name": "@cli-dev-test/utils",
   "version": "1.0.4",
   "description": "cli-dev utils",
   "author": "chenxiaojun <1102820661@qq.com>",
@@ -16,7 +16,7 @@
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
-  "gitHead": "0dac75bffb0ed4d94c04e1b0a5201fd39f6f253e",
+  "gitHead": "2f51775f8b6092a2963bc12dc206140a3bb472aa",
   "publishConfig": {
     "access": "public"
   }
