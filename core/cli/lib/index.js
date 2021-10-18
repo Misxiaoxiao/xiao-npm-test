@@ -10,8 +10,13 @@ const pkg = require('../package.json');
 const constant = require('./const');
 
 function core() {
-    // TODO
-    checkPkgVersion();
+    try {
+        // TODO
+        checkPkgVersion();
+        checkNodeVersion();
+    } catch (err) {
+        log.error(err.message);
+    }
 }
 
 function checkNodeVersion () {
@@ -19,8 +24,9 @@ function checkNodeVersion () {
     const currentVersion = process.version;
     // 第二步，比对最低版本号
     const lowesetVersion = constant.LOWEST_NODE_VERSION;
-    if (semver.gte(currentVersion, lowesetVersion)) {
-        throw new Error(colors.red(`cli 需要安装 v${lowesetVersion} 以上版本的 Node.js`))
+    console.log(currentVersion, lowesetVersion)
+    if (!semver.gte(currentVersion, lowesetVersion)) {
+        throw new Error(colors.red(`cli 需要安装 v${lowesetVersion} 以上版本的 Node.js`));
     }
 }
 
