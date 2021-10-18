@@ -5,6 +5,8 @@ module.exports = core;
 const semver = require('semver');
 const colors = require('colors/safe');
 const log = require('@cli-dev-test/log');
+const userHome = require('user-home');
+const pathExists = require('path-exists').sync;
 
 const pkg = require('../package.json');
 const constant = require('./const');
@@ -15,8 +17,16 @@ function core() {
         checkRoot();
         checkPkgVersion();
         checkNodeVersion();
+        checkUserHome();
     } catch (err) {
         log.error(err.message);
+    }
+}
+
+function checkUserHome () {
+    console.log(userHome);
+    if (!userHome || !pathExists(userHome)) {
+        throw new Error(colors.red('当前登录用户主目录不存在！'));
     }
 }
 
