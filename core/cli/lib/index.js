@@ -12,6 +12,7 @@ const constant = require('./const');
 function core() {
     try {
         // TODO
+        checkRoot();
         checkPkgVersion();
         checkNodeVersion();
     } catch (err) {
@@ -19,6 +20,14 @@ function core() {
     }
 }
 
+// 检测root账户，降级当前用户等级
+function checkRoot () {
+    const rootCheck = require('root-check');
+    rootCheck();
+    console.log(process.geteuid())
+}
+
+// 检测node版本
 function checkNodeVersion () {
     // 第一步， 获取当前Node版本号
     const currentVersion = process.version;
@@ -30,6 +39,7 @@ function checkNodeVersion () {
     }
 }
 
+// 检测当前包版本
 function checkPkgVersion () {
     log.info('cli', pkg.version);
 }
