@@ -22,6 +22,7 @@
   "dependencies": {
     "@cli-dev-test/log": "file:../../utils/log",
     "@cli-dev-test/utils": "file:../../utils/utils",
+    "@cli-dev-test/get-npm-info": "file:../../utils/get-npm-info",
     "colors": "^1.4.0",
     "dotenv": "^10.0.0",
     "import-local": "^3.0.3",

@@ -23,9 +23,21 @@ function core() {
     checkUserHome();
     checkInputArgs();
     checkEnv();
+    checkGlobalUpdate();
   } catch (err) {
     log.error(err.message);
   }
+}
+// 检测是否需要进行全局更新
+function checkGlobalUpdate () {
+  // 1. 获取当前版本号和模块名
+  const currentVersion = pkg.version;
+  const npmName = pkg.name;
+  // 2. 调用npm API，获取所有版本号
+  const { getNpmInfo } = require('@cli-dev-test/get-npm-info');
+  getNpmInfo(npmName);
+  // 3. 提取所有版本号，比对那些版本号是大于当前版本号
+  // 4. 获取最新的版本号，提示用户更新到该版本
 }
 
 // 检测环境变量
