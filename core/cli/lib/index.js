@@ -29,15 +29,22 @@ function core() {
   }
 }
 // 检测是否需要进行全局更新
-function checkGlobalUpdate () {
+async function checkGlobalUpdate () {
   // 1. 获取当前版本号和模块名
   const currentVersion = pkg.version;
   const npmName = pkg.name;
   // 2. 调用npm API，获取所有版本号
-  const { getNpmInfo } = require('@cli-dev-test/get-npm-info');
-  getNpmInfo(npmName);
+  const { getNpmSemverVersions } = require('@cli-dev-test/get-npm-info');
+  const lastVersion = await getNpmSemverVersions(currentVersion, npmName);
   // 3. 提取所有版本号，比对那些版本号是大于当前版本号
   // 4. 获取最新的版本号，提示用户更新到该版本
+  if (lastVersion && semver.gt(lastVersion, currentVersion)) {
+    log.warn('更新提示', colors.yellow(`
+    请手动更新 ${npmName}
+    当前版本：${currentVersion}
+    最新版本：${lastVersion}
+    更新命令：npm install -g ${npmName}`));
+  }
 }
 
 // 检测环境变量
