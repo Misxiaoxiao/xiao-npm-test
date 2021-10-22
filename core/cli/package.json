@@ -24,6 +24,7 @@
     "@cli-dev-test/log": "file:../../utils/log",
     "@cli-dev-test/utils": "file:../../utils/utils",
     "@cli-dev-test/init": "file:../../commands/init",
+    "@cli-dev-test/exec": "file:../exec",
     "colors": "^1.4.0",
     "commander": "^6.0.0",
     "dotenv": "^10.0.0",
