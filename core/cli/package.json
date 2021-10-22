@@ -1,6 +1,6 @@
 {
   "name": "@cli-dev-test/core",
-  "version": "1.0.1",
+  "version": "1.0.5",
   "description": "cli-dev core",
   "author": "chenxiaojun <1102820661@qq.com>",
   "homepage": "",
@@ -20,10 +20,12 @@
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
+    "@cli-dev-test/get-npm-info": "file:../../utils/get-npm-info",
     "@cli-dev-test/log": "file:../../utils/log",
     "@cli-dev-test/utils": "file:../../utils/utils",
-    "@cli-dev-test/get-npm-info": "file:../../utils/get-npm-info",
+    "@cli-dev-test/init": "file:../../commands/init",
     "colors": "^1.4.0",
+    "commander": "^6.0.0",
     "dotenv": "^10.0.0",
     "import-local": "^3.0.3",
     "minimist": "^1.2.5",
