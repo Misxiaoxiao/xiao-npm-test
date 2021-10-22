@@ -14,19 +14,11 @@ const init = require('@cli-dev-test/init');
 const pkg = require('../package.json');
 const constant = require('./const');
 
-let args;
 const program = new commander.Command();
 
-function core() {
+async function core() {
   try {
-    // TODO
-    checkRoot();
-    checkPkgVersion();
-    checkNodeVersion();
-    checkUserHome();
-    // checkInputArgs();
-    checkEnv();
-    checkGlobalUpdate();
+    await prepare();
     registerCommand();
   } catch (err) {
     log.error(err.message);
@@ -39,7 +31,8 @@ function registerCommand () {
     .name(Object.keys(pkg.bin)[0])
     .usage('<command> [options]')
     .version(pkg.version)
-    .option('-d, --debug', '是否开启调试模式', false);
+    .option('-d, --debug', '是否开启调试模式', false)
+    .option('-tp, --targetPath <targetPath>', '是否制定本地调试文件路径', '');
 
   program
     .command('init [projectName]')
@@ -65,12 +58,26 @@ function registerCommand () {
     }
   })
 
+  // 指定 targetPath
+  program.on('option:targetPath', function () {
+    process.env.CLI_TARGET_PATH = program.targetPath;
+  })
+
   program.parse(process.argv);
 
   if (program.args && program.args.length < 1) {
     program.outputHelp();
     console.log();
   }
+}
+
+async function prepare () {
+  checkPkgVersion();
+  checkNodeVersion();
+  checkRoot();
+  checkUserHome();
+  checkEnv();
+  await checkGlobalUpdate();
 }
 
 // 检测是否需要进行全局更新
@@ -102,7 +109,6 @@ function checkEnv () {
     });
   }
   createDefaultConfig();
-  log.verbose('环境变量', process.env.CLI_HOME_PATH);
 }
 
 // 创建默认环境变量配置
@@ -116,23 +122,6 @@ function createDefaultConfig () {
     cliConfig['cliHome'] = path.join(userHome, constant.DEFAULT_CLI_HOME);
   }
   process.env.CLI_HOME_PATH = cliConfig.cliHome;
-}
-
-// 根据环境变量检测log
-function checkInputArgs () {
-  const minimist = require('minimist');
-  args = minimist(process.argv.slice(2));
-  checkArgs();
-}
-
-// 修改log的level
-function checkArgs() {
-  if (args.debug) {
-    process.env.LOG_LEVEL = 'verbose';
-  } else {
-    process.env.LOG_LEVEL = 'info';
-  }
-  log.level = process.env.LOG_LEVEL;
 }
 
 function checkUserHome() {
