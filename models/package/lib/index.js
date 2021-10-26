@@ -2,9 +2,11 @@
 
 const pkgDir = require('pkg-dir').sync;
 const path = require('path');
+const npminstall = require('npminstall');
 
 const { isObject } = require('@cli-dev-test/utils');
 const formatPath = require('@cli-dev-test/format-path');
+const { getDefaultRegistry } = require('@cli-dev-test/get-npm-info');
 
 class Package {
   constructor(options) {
@@ -16,6 +18,8 @@ class Package {
     }
     // package 的路径
     this.targetPath = options.targetPath;
+    // 缓存 package 的路径
+    this.storeDir = options.storeDir;
     // package 的存储路径
     // this.storePath = options.storePath;
     // package 的 name
@@ -28,7 +32,16 @@ class Package {
   exists() { }
 
   // 安装 package
-  install() { }
+  install() {
+    return npminstall({
+      root: this.targetPath,
+      storeDir: this.storeDir,
+      registry: getDefaultRegistry(),
+      pkgs: [
+        { name: this.packageName, version: this.packageVersion },
+      ]
+    })
+  }
 
   // 更新 Package
   update() { }

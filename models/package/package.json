@@ -27,8 +27,10 @@
     "url": "https://github.com/Misxiaoxiao/xiao-npm-test/issues"
   },
   "dependencies": {
-    "@cli-dev-test/utils": "file:../../utils/utils",
     "@cli-dev-test/format-path": "file:../../utils/format-path",
+    "@cli-dev-test/utils": "file:../../utils/utils",
+    "@cli-dev-test/get-npm-info": "file:../../utils/get-npm-info",
+    "npminstall": "^4.10.0",
     "pkg-dir": "^5.0.0"
   }
 }
