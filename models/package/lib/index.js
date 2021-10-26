@@ -3,10 +3,11 @@
 const pkgDir = require('pkg-dir').sync;
 const path = require('path');
 const npminstall = require('npminstall');
+const pathExists = require('path-exists').sync;
 
 const { isObject } = require('@cli-dev-test/utils');
 const formatPath = require('@cli-dev-test/format-path');
-const { getDefaultRegistry } = require('@cli-dev-test/get-npm-info');
+const { getDefaultRegistry, getNpmLatestVersion } = require('@cli-dev-test/get-npm-info');
 
 class Package {
   constructor(options) {
@@ -26,13 +27,36 @@ class Package {
     this.packageName = options.packageName;
     // package 的 version
     this.packageVersion = options.packageVersion;
+    // package 的缓存目录前缀
+    this.cacheFilePathPrefix = this.packageName.replace('/', '_');
+  }
+
+  async prepare () {
+    if (this.packageVersion === 'latest') {
+      console.log('packageName', this.packageName)
+      this.packageVersion = await getNpmLatestVersion(this.packageName);
+    }
+    
+  }
+
+  get cacheFilePath () {
+    return path.resolve(this.storeDir, `_${this.cacheFilePathPrefix}@${this.packageVersion}@${this.packageName}`)
   }
 
   // 判断当前 package 是否存在
-  exists() { }
+  async exists() {
+    if (this.storeDir) {
+      await this.prepare();
+      console.log(this.cacheFilePath);
+      return pathExists(this.cacheFilePath);
+    } else {
+      return pathExists(this.targetPath);
+    }
+  }
 
   // 安装 package
-  install() {
+  async install() {
+    await this.prepare();
     return npminstall({
       root: this.targetPath,
       storeDir: this.storeDir,

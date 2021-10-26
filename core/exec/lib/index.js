@@ -5,7 +5,7 @@ const Package = require('@cli-dev-test/package');
 const log = require('@cli-dev-test/log');
 
 const SETTINGS = {
-  init: '@cli-dev-test/init'
+  init: 'vue'
 }
 
 const CACHE_DIR = 'dependencies';
@@ -35,8 +35,9 @@ async function exec () {
       packageVersion
     });
 
-    if (pkg.exists()) {
+    if (await pkg.exists()) {
       // 更新 package
+      console.log('更新 package')
     } else {
       // 安装 package
       await pkg.install();
@@ -47,6 +48,7 @@ async function exec () {
       packageName,
       packageVersion
     });
+    console.log(await pkg.exists());
     const rootFile = pkg.getRootFilePath();
     if (rootFile) {
       require(rootFile).apply(null, arguments);
