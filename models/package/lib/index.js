@@ -32,23 +32,23 @@ class Package {
     this.cacheFilePathPrefix = this.packageName.replace('/', '_');
   }
 
-  async prepare () {
+  async prepare() {
     // 如果目录不存在时
     if (this.storeDir && !pathExists(this.storeDir)) {
       fse.mkdirpSync(this.storeDir);
     }
-    
+
     if (this.packageVersion === 'latest') {
       console.log('packageName', this.packageName)
       this.packageVersion = await getNpmLatestVersion(this.packageName);
     }
   }
 
-  get cacheFilePath () {
+  get cacheFilePath() {
     return path.resolve(this.storeDir, `_${this.cacheFilePathPrefix}@${this.packageVersion}@${this.packageName}`);
   }
 
-  getSpecificCacheFilePath (packageVersion) {
+  getSpecificCacheFilePath(packageVersion) {
     return path.resolve(this.storeDir, `_${this.cacheFilePathPrefix}@${packageVersion}@${this.packageName}`);
   }
 
@@ -98,20 +98,27 @@ class Package {
 
   // 获取入口文件的路径
   getRootFilePath() {
-    // 1. 获取 package.json 的所在目录 - pkg-dir
-    const dir = pkgDir(this.targetPath);
-    if (dir) {
-      // 2. 读取 package.json - require()
-      const pkgFile = require(path.resolve(dir, 'package.json'));
-      // 3. main | lib - path
-      if (pkgFile && (pkgFile.main || pkgFile.lib)) {
-        const url = pkgFile.main || pkgFile.lib;
-        return formatPath(path.resolve(dir, url));
+    function _getRootFile (targetPath) {
+      // 1. 获取 package.json 的所在目录 - pkg-dir
+      const dir = pkgDir(targetPath);
+      if (dir) {
+        // 2. 读取 package.json - require()
+        const pkgFile = require(path.resolve(dir, 'package.json'));
+        // 3. main | lib - path
+        if (pkgFile && (pkgFile.main || pkgFile.lib)) {
+          const url = pkgFile.main || pkgFile.lib;
+          return formatPath(path.resolve(dir, url));
+        }
+
+        // 4. 路劲的兼容 (macOs | windows)
       }
-      
-      // 4. 路劲的兼容 (macOs | windows)
+      return null;
     }
-    return null;
+    if (this.storeDir) {
+      return _getRootFile(this.cacheFilePath);
+    } else {
+      return _getRootFile(this.targetPath);
+    }
   }
 }
 

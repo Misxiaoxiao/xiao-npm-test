@@ -12,7 +12,7 @@ const CACHE_DIR = 'dependencies';
 
 async function exec () {
   let targetPath = process.env.CLI_TARGET_PATH;
-  let storeDir = '';
+  let storeDir = '', pkg;
   const homePath = process.env.CLI_HOME_PATH;
   log.verbose('targetPath', targetPath);
   log.verbose('homePath', homePath);
@@ -28,7 +28,7 @@ async function exec () {
     log.verbose('targetPath', targetPath);
     log.verbose('storeDir', storeDir);
 
-    const pkg = new Package({
+    pkg = new Package({
       targetPath,
       storeDir,
       packageName,
@@ -43,16 +43,16 @@ async function exec () {
       await pkg.install();
     }
   } else {
-    const pkg = new Package({
+    pkg = new Package({
       targetPath,
       packageName,
       packageVersion
     });
-    console.log(await pkg.exists());
-    const rootFile = pkg.getRootFilePath();
-    if (rootFile) {
-      require(rootFile).apply(null, arguments);
-    }
+  }
+  const rootFile = pkg.getRootFilePath();
+  console.log('rootFile', rootFile)
+  if (rootFile) {
+    // require(rootFile).apply(null, arguments);
   }
 }
 
