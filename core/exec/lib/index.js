@@ -20,7 +20,7 @@ async function exec () {
   const cmdObj = arguments[arguments.length - 1];
   const cmdName = cmdObj.name();
   const packageName = SETTINGS[cmdName];
-  const packageVersion = 'latest';
+  const packageVersion = '1.0.0';
 
   if (!targetPath) {
     targetPath = path.resolve(homePath, CACHE_DIR); // 生成缓存路径
@@ -37,7 +37,7 @@ async function exec () {
 
     if (await pkg.exists()) {
       // 更新 package
-      console.log('更新 package')
+      await pkg.update();
     } else {
       // 安装 package
       await pkg.install();
