@@ -50,9 +50,14 @@ async function exec () {
     });
   }
   const rootFile = pkg.getRootFilePath();
-  console.log('rootFile', rootFile)
   if (rootFile) {
-    // require(rootFile).apply(null, arguments);
+    try {
+      // 在当前进程中调用
+      require(rootFile).call(null, Array.from(arguments));
+      // 在 node 子进程中调用
+    } catch (e) {
+      log.error(e.message)
+    }
   }
 }
 
