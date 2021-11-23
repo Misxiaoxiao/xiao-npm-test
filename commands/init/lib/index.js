@@ -27,11 +27,9 @@ class InitCommand extends Command {
 
   prepare () {
     // 1. 判断当前目录是否为空
-    const ret = this.isCwdEmpty();
     if (!this.isCwdEmpty()) {
       // 1.1 询问是否继续创建
     }
-    console.log(ret)
     // 2. 是否启动强制更新
     // 3. 选择创建项目或组件
     // 4. 获取项目的基本信息
