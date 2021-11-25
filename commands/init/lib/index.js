@@ -4,9 +4,14 @@ const fs = require('fs');
 const inquirer = require('inquirer');
 const fse = require('fs-extra');
 const semver = require('semver');
+const path = require('path');
+const userHome = require('user-home')
 
 const Command = require('@cli-dev-test/command');
 const log = require('@cli-dev-test/log');
+const Package = require('@cli-dev-test/package');
+
+const getProjectTemplate = require('./getProjectTemplate')
 
 const TYPE_PROJECT = 'project';
 const TYPE_COMPONENT = 'component';
@@ -22,17 +27,50 @@ class InitCommand extends Command {
   async exec () {
     try {
       // 1. 准备阶段
-      const ret = await this.prepare()
-      if (ret) {
+      const projectInfo = await this.prepare();
+      if (projectInfo) {
         // 2. 下载模板
+        log.verbose('projectInfo', projectInfo);
+        await this.downloadTemplate();
         // 3. 安装模板
       }
     } catch (err) {
-      log.error(err.message)
+      log.error(err.message);
+    }
+  }
+
+  async downloadTemplate () {
+    // 1. 通过项目模板API获取项目模板信息
+    // 1.1 通过 egg.js 搭建一套后端系统
+    // 1.2 通过 npm 存储项目模板
+    // 1.3 将项目模板信息存储到 mongodb 数据库中
+    // 1.4 通过 egg.js 获取 mongodb 中的数据并且通过 API 返回
+    const { projectTemplate } = this.projectInfo;
+    const templateInfo = this.template.find(item => item.npmName === projectTemplate);
+    const targetPath = path.resolve(userHome, '.cli-dev', 'template');
+    const storeDir = path.resolve(userHome, '.cli-dev', 'template', 'node_modules');
+    const { npmName, version } = templateInfo;
+    const templateNpm = new Package({
+      targetPath,
+      storeDir,
+      packageName: npmName,
+      packageVersion: version
+    })
+
+    if (! await templateNpm.exists()) {
+      await templateNpm.install();
+    } else {
+      await templateNpm.update();
     }
   }
 
   async prepare () {
+    // 0. 判断项目模板是否存在
+    const template = await getProjectTemplate();
+    if (!template || template.length === 0) {
+      throw new Error('项目模板不存在');
+    }
+    this.template = template;
     // 1. 判断当前目录是否为空
     const localPath = process.cwd()
     if (!this.isDirEmpty(localPath)) {
@@ -67,7 +105,7 @@ class InitCommand extends Command {
   }
 
   async getProjectInfo () {
-    const projectInfo = {};
+    let projectInfo = {};
     // 1. 选择创建项目或组件
     const { type } = await inquirer.prompt({
       type: 'list',
@@ -82,7 +120,7 @@ class InitCommand extends Command {
     log.verbose('type', type)
     if (type === TYPE_PROJECT) {
       // 2. 获取项目的基本信息
-      const o = await inquirer.prompt([
+      const project = await inquirer.prompt([
         {
           type: 'input',
           name: 'projectName',
@@ -125,14 +163,32 @@ class InitCommand extends Command {
             }, 0);
           },
           filter: v => !!semver.valid(v) ? semver.valid(v) : v
+        },
+        {
+          type: 'list',
+          name: 'projectTemplate',
+          message: '请选择项目模板',
+          choices: this.createTemplateChoice()
         }
       ])
-      console.log(o)
+      
+      projectInfo = {
+        type,
+        ...project
+      }
+      this.projectInfo = projectInfo
     } else if (type === TYPE_COMPONENT) {
 
     }
     // return 项目基本信息（object）
     return projectInfo;
+  }
+
+  createTemplateChoice() {
+    return this.template.map(item => ({
+      value: item.npmName,
+      name: item.name
+    }))
   }
 
   isDirEmpty (localPath) {

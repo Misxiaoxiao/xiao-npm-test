@@ -1,7 +1,7 @@
 {
-  "name": "@cli-dev-test/init",
-  "version": "1.0.0",
-  "description": "cli-dev test init",
+  "name": "@cli-dev-test/request",
+  "version": "1.0.5",
+  "description": "> TODO: description",
   "author": "misxiaoxiao <1102820661@qq.com>",
   "homepage": "https://github.com/Misxiaoxiao/xiao-npm-test#readme",
   "license": "ISC",
@@ -27,13 +27,6 @@
     "url": "https://github.com/Misxiaoxiao/xiao-npm-test/issues"
   },
   "dependencies": {
-    "@cli-dev-test/command": "file:../../models/command",
-    "@cli-dev-test/log": "file:../../utils/log",
-    "@cli-dev-test/package": "file:../../models/package",
-    "@cli-dev-test/request": "file:../../utils/request",
-    "fs-extra": "^10.0.0",
-    "inquirer": "^8.2.0",
-    "semver": "^7.3.5",
-    "user-home": "^3.0.0"
+    "axios": "^0.24.0"
   }
 }
