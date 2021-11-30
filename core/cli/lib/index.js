@@ -71,7 +71,6 @@ function registerCommand () {
 
   if (program.args && program.args.length < 1) {
     program.outputHelp();
-    console.log();
   }
 }
 

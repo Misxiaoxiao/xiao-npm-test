@@ -39,7 +39,6 @@ class Package {
     }
 
     if (this.packageVersion === 'latest') {
-      console.log('packageName', this.packageName)
       this.packageVersion = await getNpmLatestVersion(this.packageName);
     }
   }
@@ -49,6 +48,7 @@ class Package {
   }
 
   getSpecificCacheFilePath(packageVersion) {
+    // TODO: 需要根据当前最高版本去判断此处的版本信息
     return path.resolve(this.storeDir, `_${this.cacheFilePathPrefix}@${packageVersion}@${this.packageName}`);
   }
 
@@ -110,7 +110,7 @@ class Package {
           return formatPath(path.resolve(dir, url));
         }
 
-        // 4. 路劲的兼容 (macOs | windows)
+        // 4. 路径的兼容 (macOs | windows)
       }
       return null;
     }

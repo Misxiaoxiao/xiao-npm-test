@@ -31,6 +31,7 @@
     "@cli-dev-test/log": "file:../../utils/log",
     "@cli-dev-test/package": "file:../../models/package",
     "@cli-dev-test/request": "file:../../utils/request",
+    "@cli-dev-test/utils": "file:../../utils/utils",
     "fs-extra": "^10.0.0",
     "inquirer": "^8.2.0",
     "semver": "^7.3.5",
