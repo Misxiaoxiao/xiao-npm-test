@@ -10,12 +10,15 @@ const userHome = require('user-home')
 const Command = require('@cli-dev-test/command');
 const log = require('@cli-dev-test/log');
 const Package = require('@cli-dev-test/package');
-const { spinnerStart, sleep } = require('@cli-dev-test/utils')
+const { spinnerStart, sleep, exec, execAsync } = require('@cli-dev-test/utils')
 
 const getProjectTemplate = require('./getProjectTemplate')
 
 const TYPE_PROJECT = 'project';
 const TYPE_COMPONENT = 'component';
+
+const TEMPLATE_TYPE_NORMAL = 'normal';
+const TEMPLATE_TYPE_CUSTOM = 'custom';
 
 class InitCommand extends Command {
   init () {
@@ -34,6 +37,7 @@ class InitCommand extends Command {
         log.verbose('projectInfo', projectInfo);
         await this.downloadTemplate();
         // 3. 安装模板
+        await this.installTemplate()
       }
     } catch (err) {
       log.error(err.message);
@@ -51,6 +55,7 @@ class InitCommand extends Command {
     const targetPath = path.resolve(userHome, '.cli-dev', 'template');
     const storeDir = path.resolve(userHome, '.cli-dev', 'template', 'node_modules');
     const { npmName, version } = templateInfo;
+    this.templateInfo = templateInfo;
     const templateNpm = new Package({
       targetPath,
       storeDir,
@@ -61,16 +66,105 @@ class InitCommand extends Command {
     if (! await templateNpm.exists()) {
       const spinner = spinnerStart('正在下载模板...');
       await sleep();
-      await templateNpm.install();
-      spinner.stop(true);
-      log.success('下载模板成功');
+      try {
+        await templateNpm.install();
+      } catch (e) {
+        throw e;
+      } finally {
+        spinner.stop(true);
+        if (await templateNpm.exists()) {
+          log.success('下载模板成功');
+          this.templateNpm = templateNpm
+        }
+      }
     } else {
       const spinner = spinnerStart('正在更新模板...');
       await sleep();
-      await templateNpm.update();
-      spinner.stop(true);
-      log.success('更新模板成功');
+      try {
+        await templateNpm.update();
+      } catch (e) {
+        throw e;
+      } finally {
+        spinner.stop(true);
+        if (await templateNpm.exists()) {
+          log.success('更新模板成功');
+          this.templateNpm = templateNpm
+        }
+      }
     }
+  }
+
+  async installTemplate() {
+    log.verbose('templateInfo', this.templateInfo)
+    if (this.templateInfo) {
+      if (!this.templateInfo.type) {
+        this.templateInfo.type = TEMPLATE_TYPE_NORMAL;
+      }
+      if (this.templateInfo.type === TEMPLATE_TYPE_NORMAL) {
+        // 标准安装
+        await this.installNormalTemplate()
+      } else if (this.templateInfo.type === TEMPLATE_TYPE_CUSTOM) {
+        // 自定义安装
+        await this.installCustomTemplate()
+      } else {
+        throw new Error('无法识别项目模板类型！');
+      }
+    } else {
+      throw new Error('项目模板信息不存在！');
+    }
+  }
+
+  // 安装标准模板
+  async installNormalTemplate () {
+    // 拷贝模板代码至当前目录
+    let spinner = spinnerStart('正在安装模板');
+    await sleep();
+    try {
+      const templatePath = path.resolve(this.templateNpm.cacheFilePath, 'template');
+      const targetPath = process.cwd();
+      fse.ensureDirSync(templatePath);
+      fse.ensureDirSync(targetPath);
+      fse.copySync(templatePath, targetPath);
+    } catch (e) {
+      throw e;
+    } finally {
+      spinner.stop(true);
+      log.success('模板安装成功');
+    }
+    // 依赖安装
+    const { installCommand, startCommand } = this.templateInfo;
+    let installRet
+    if (installCommand) {
+      const installCmd = installCommand.split(' ');
+      const cmd = installCmd[0];
+      const args = installCmd.slice(1);
+      installRet = await execAsync(cmd, args, {
+        stdio: 'inherit',
+        cwd: process.cwd()
+      })
+    }
+    if (installRet !== 0) {
+      throw new Error('依赖安装过程中失败！');
+    }
+    // 启动项目
+    let startRet
+    if (startCommand) {
+      const startCmd = startCommand.split(' ');
+      const cmd = startCmd[0];
+      const args = startCmd.slice(1);
+      startRet = await execAsync(cmd, args, {
+        stdio: 'inherit',
+        cwd: process.cwd()
+      })
+    }
+    if (startRet !== 0) {
+      throw new Error('项目启动过程中失败！');
+    }
+  }
+
+  // 安装自定义模板
+  async installCustomTemplate () {
+    console.log('install custom template')
   }
 
   async prepare () {

@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@cli-dev-test/package": "file:../../models/package",
-    "@cli-dev-test/log": "file:../../utils/log"
+    "@cli-dev-test/log": "file:../../utils/log",
+    "@cli-dev-test/utils": "file:../../utils/utils"
   }
 }

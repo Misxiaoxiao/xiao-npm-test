@@ -1,9 +1,9 @@
 'use strict';
 
-const cp = require('child_process');
 const path = require('path');
 const Package = require('@cli-dev-test/package');
 const log = require('@cli-dev-test/log');
+const { exec: spawn } = require('@cli-dev-test/utils');
 
 const SETTINGS = {
   init: 'vue'
@@ -81,15 +81,6 @@ async function exec () {
       log.error(e.message)
     }
   }
-}
-
-function spawn(command, args, options) {
-  const win32 = process.platform === 'win32'
-
-  const cmd = win32 ? 'cmd' : command
-  const cmdArgs = win32 ? ['/c'].concat(command, args) : args
-
-  return cp.spawn(cmd, cmdArgs,options || {})
 }
 
 module.exports = exec;
