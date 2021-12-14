@@ -3,6 +3,8 @@
 const fs = require('fs');
 const inquirer = require('inquirer');
 const fse = require('fs-extra');
+const glob = require('glob');
+const ejs = require('ejs')
 const semver = require('semver');
 const path = require('path');
 const userHome = require('user-home')
@@ -104,6 +106,39 @@ class InitCommand extends Command {
     return null
   }
 
+  ejsRender (options) {
+    const dir = process.cwd()
+    const projectInfo = this.projectInfo
+    return new Promise((resolve, reject) => {
+      glob('**', {
+        cwd: dir,
+        ignore: options.ignore || '',
+        nodir: true
+      }, (err, files) => {
+        if (err) {
+          reject(err)
+        }
+        Promise.all(files.map(file => {
+          const filePath = path.join(dir, file);
+          return new Promise((resolve1, reject1) => {
+            ejs.renderFile(filePath, projectInfo, {}, (err, result) => {
+              if (err) {
+                reject1(err)
+              } else {
+                fse.writeFileSync(filePath, result)
+                resolve1(result)
+              }
+            })
+          })
+        })).then(() => {
+          resolve();
+        }).catch(err => {
+          reject(err);
+        })
+      })
+    })
+  }
+
   async installTemplate() {
     log.verbose('templateInfo', this.templateInfo)
     if (this.templateInfo) {
@@ -163,6 +198,10 @@ class InitCommand extends Command {
       spinner.stop(true);
       log.success('模板安装成功');
     }
+
+    const ignore = ['node_modules/**', 'public/**'];
+    await this.ejsRender({ignore});
+
     const { installCommand, startCommand } = this.templateInfo;
     // 依赖安装
     await this.execCommand(installCommand, '依赖安装过程中失败！')
@@ -292,6 +331,18 @@ class InitCommand extends Command {
     } else if (type === TYPE_COMPONENT) {
 
     }
+
+    // 生成 classname
+    if (projectInfo.projectName) {
+      projectInfo.name = projectInfo.projectName
+      projectInfo.className = require('kebab-case')(projectInfo.projectName).replace(/^-/, '');
+    }
+
+    if (projectInfo.projectVersion) {
+      projectInfo.version = projectInfo.projectVersion
+    }
+
+
     // return 项目基本信息（object）
     return projectInfo;
   }
