@@ -256,7 +256,19 @@ class InitCommand extends Command {
   }
 
   async getProjectInfo () {
+    function isValidName (v) {
+      console.log(v)
+      return v && /^[a-zA-Z]+([-][a-zA-Z][a-zA-Z0-9]*|[_][a-zA-Z][a-zA-Z0-9]*|[a-zA-Z0-9])*$/.test(v)
+    }
+
     let projectInfo = {};
+
+    let isProjectNameValid = false
+    if (isValidName(this.projectName)) {
+      isProjectNameValid = true
+      projectInfo.projectName = this.projectName
+    }
+
     // 1. 选择创建项目或组件
     const { type } = await inquirer.prompt({
       type: 'list',
@@ -271,59 +283,65 @@ class InitCommand extends Command {
     log.verbose('type', type)
     if (type === TYPE_PROJECT) {
       // 2. 获取项目的基本信息
-      const project = await inquirer.prompt([
-        {
-          type: 'input',
-          name: 'projectName',
-          message: '请输入项目名称',
-          default: '',
-          // 校验规则
-          // 1. 输入的首字符必须为英文字符
-          // 2. 尾字符必须为英文或数字，不能为字符
-          // 3. 字符仅允许"-_"
-          // 合法: a, a-b, a_b, a-b-c, a_b_c, a-b1-c1, a_b1_c1, a1, a1-b1-c1, a1_b1_c1
-          // 不合法: 1, a_, a-, a_1, a-1
-          validate: function (v) {
-            const done = this.async();
+      const projectNamePrompt = {
+        type: 'input',
+        name: 'projectName',
+        message: '请输入项目名称',
+        default: '',
+        // 校验规则
+        // 1. 输入的首字符必须为英文字符
+        // 2. 尾字符必须为英文或数字，不能为字符
+        // 3. 字符仅允许"-_"
+        // 合法: a, a-b, a_b, a-b-c, a_b_c, a-b1-c1, a_b1_c1, a1, a1-b1-c1, a1_b1_c1
+        // 不合法: 1, a_, a-, a_1, a-1
+        validate: function (v) {
+          const done = this.async();
+          setTimeout(() => {
+            if (!isValidName(v)) {
+              done('请输入合法的项目名称');
+              return;
+            }
+            done(null, true);
+          }, 0);
+        },
+        filter: v => v
+      }
 
-            setTimeout(() => {
-              if (!/^[a-zA-Z]+([-][a-zA-Z][a-zA-Z0-9]*|[_][a-zA-Z][a-zA-Z0-9]*|[a-zA-Z0-9])*$/.test(v)) {
-                done('请输入合法的项目名称');
-                return;
-              }
-              done(null, true);
-            }, 0);
-            // return /^[a-zA-Z]+([-][a-zA-Z][a-zA-Z0-9]*|[_][a-zA-Z][a-zA-Z0-9]*|[a-zA-Z0-9])*$/.test(v)
-          },
-          filter: v => v
+      const projectPrompt = []
+
+      if (!isProjectNameValid) {
+        projectPrompt.push(projectNamePrompt)
+      }
+
+      projectPrompt.push({
+        type: 'input',
+        name: 'projectVersion',
+        message: '请输入项目版本号',
+        default: '1.0.0',
+        validate: function (v) {
+          const done = this.async();
+          
+          setTimeout(() => {
+            if (!semver.valid(v)) {
+              done('请输入合法的项目版本号');
+              return;
+            }
+            done(null, true);
+          }, 0);
         },
-        {
-          type: 'input',
-          name: 'projectVersion',
-          message: '请输入项目版本号',
-          default: '1.0.0',
-          validate: function (v) {
-            const done = this.async();
-            
-            setTimeout(() => {
-              if (!semver.valid(v)) {
-                done('请输入合法的项目版本号');
-                return;
-              }
-              done(null, true);
-            }, 0);
-          },
-          filter: v => !!semver.valid(v) ? semver.valid(v) : v
-        },
-        {
-          type: 'list',
-          name: 'projectTemplate',
-          message: '请选择项目模板',
-          choices: this.createTemplateChoice()
-        }
-      ])
+        filter: v => !!semver.valid(v) ? semver.valid(v) : v
+      },
+      {
+        type: 'list',
+        name: 'projectTemplate',
+        message: '请选择项目模板',
+        choices: this.createTemplateChoice()
+      })
+
+      const project = await inquirer.prompt(projectPrompt)
       
       projectInfo = {
+        ...projectInfo,
         type,
         ...project
       }
